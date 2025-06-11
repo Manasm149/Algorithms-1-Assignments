@@ -3,17 +3,19 @@ import edu.princeton.cs.algs4.StdRandom;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+// A generic randomized queue where each dequeue removes a random item.
 public class RandomizedQueue<Item> implements Iterable<Item> {
 
-    // Array to store items
+    // Internal array to store queue elements
     private Item[] items;
 
-    // Number of elements in the queue
+    // Number of elements currently in the queue
     private int size;
 
-    // Constructs an empty randomized queue
+    // Constructor to create an empty randomized queue
     public RandomizedQueue() {
-        items = (Item[]) new Object[2]; // initial capacity
+        // Start with a small array of size 2
+        items = (Item[]) new Object[2];
         size = 0;
     }
 
@@ -22,7 +24,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         return size == 0;
     }
 
-    // Returns the number of items on the queue
+    // Returns the number of items currently in the queue
     public int size() {
         return size;
     }
@@ -30,38 +32,46 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     // Adds an item to the queue
     public void enqueue(Item item) {
         if (item == null)
-            throw new IllegalArgumentException("Cannot add null");
+            throw new IllegalArgumentException("Cannot enqueue null item");
 
+        // If the array is full, double its capacity
         if (size == items.length)
-            resize(2 * items.length); // double size if full
+            resize(2 * items.length);
 
+        // Insert item at the end
         items[size++] = item;
     }
 
-    // Removes and returns a random item
+    // Removes and returns a random item from the queue
     public Item dequeue() {
         if (isEmpty())
             throw new NoSuchElementException("Queue is empty");
 
+        // Choose a random index in the range [0, size)
         int index = StdRandom.uniform(size);
+
+        // Save the item to return
         Item item = items[index];
 
-        // Move last item into the removed spot to keep array compact
+        // Move the last item into the index being removed (to fill the gap)
         items[index] = items[size - 1];
-        items[size - 1] = null;
+        items[size - 1] = null; // avoid loitering (memory leak)
+
         size--;
 
+        // Shrink the array if it's too empty to save space
         if (size > 0 && size == items.length / 4)
-            resize(items.length / 2); // shrink size if too empty
+            resize(items.length / 2);
 
         return item;
     }
 
-    // Returns (but does not remove) a random item
+    // Returns (but does not remove) a random item from the queue
     public Item sample() {
         if (isEmpty())
             throw new NoSuchElementException("Queue is empty");
 
+        // Simply return a random item without removing it
         return items[StdRandom.uniform(size)];
     }
 
@@ -70,55 +80,71 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         return new RandomizedQueueIterator();
     }
 
-    // Resizes the internal array to the given capacity
+    // Resizes the underlying array to the given capacity
     private void resize(int capacity) {
+        // Create a new array and copy all items into it
         Item[] copy = (Item[]) new Object[capacity];
         for (int i = 0; i < size; i++)
             copy[i] = items[i];
         items = copy;
     }
 
-    // Iterator class that returns items in random order
+    // Iterator class to iterate through the items in random order
     private class RandomizedQueueIterator implements Iterator<Item> {
-        private final Item[] shuffled;
+        private final Item[] shuffled; // a shuffled copy of items[]
         private int current;
 
         public RandomizedQueueIterator() {
+            // Make a shallow copy of the current items
             shuffled = (Item[]) new Object[size];
             for (int i = 0; i < size; i++)
                 shuffled[i] = items[i];
 
-            StdRandom.shuffle(shuffled); // shuffle items
+            // Shuffle the copy so we can iterate in random order
+            StdRandom.shuffle(shuffled);
+
             current = 0;
         }
 
+        // Check if there are more elements in the iterator
         public boolean hasNext() {
             return current < shuffled.length;
         }
 
+        // Return the next item from the iterator
         public Item next() {
             if (!hasNext())
-                throw new NoSuchElementException();
+                throw new NoSuchElementException("No more items");
+
             return shuffled[current++];
         }
 
+        // Remove is unsupported in this iterator
         public void remove() {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException("remove() not supported");
         }
     }
 
-    // Unit test (optional, ignored in grading)
+    // Unit testing (optional; can be ignored by autograder)
     public static void main(String[] args) {
+        // Create a randomized queue of strings
         RandomizedQueue<String> q = new RandomizedQueue<>();
+
+        // Enqueue a few strings
         q.enqueue("A");
         q.enqueue("B");
         q.enqueue("C");
         q.enqueue("D");
 
+        // Sample a random item (does not remove it)
         StdOut.println("Sample: " + q.sample());
+
+        // Dequeue a random item (removes it)
         StdOut.println("Dequeue: " + q.dequeue());
 
+        // Iterate over the queue (in random order)
+        StdOut.println("Iteration:");
         for (String s : q)
-            StdOut.println("Iterated: " + s);
+            StdOut.println(" - " + s);
     }
 }
