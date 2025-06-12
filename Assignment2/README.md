@@ -1,5 +1,3 @@
-Queues Assignment - README
-
 Overview
 --------
 This project implements two generic data structures for the Princeton Algorithms course:
