@@ -3,92 +3,83 @@ import edu.princeton.cs.algs4.StdDraw;
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.In;
 
-
 public final class FastCollinearPoints {
 
-    private final LineSegment [] segments;
+    private final LineSegment[] foundSegments;
 
-    // finds all line segments containing 4 or more points
-    public FastCollinearPoints(Point[] points) {
-        if (points == null) throw new IllegalArgumentException();
-        for (int i = 0; i < points.length; i++) if (points[i] == null) throw new IllegalArgumentException();
+    // finds all line segments containing 4 or more collinear points
+    public FastCollinearPoints(Point[] inputPoints) {
+        if (inputPoints == null) throw new IllegalArgumentException();
+        for (Point p : inputPoints)
+            if (p == null) throw new IllegalArgumentException();
 
-        int length = points.length;
-        Point [] myPoints = points.clone();
-        Point [] fixedOrder;
-        int numSegments = 0;
-        double testSlope;
+        int n = inputPoints.length;
+        Point[] sortedPoints = inputPoints.clone();
+        Point[] originalOrder;
+        int totalSegments = 0;
+        double currentSlope;
         Point origin;
-        LineSegment [] testSegments = new LineSegment[length*length];
+        LineSegment[] tempSegments = new LineSegment[n * n];
 
+        Arrays.sort(sortedPoints);
+        originalOrder = sortedPoints.clone();  // preserve original point order
 
-        Arrays.sort(myPoints);
-        fixedOrder = myPoints.clone(); // Keep original set of points because sorting scrambles points
-        // Check for duplicate points
-        for (int i = 0; i < length-1; i++) {
-            if (myPoints[i].compareTo(myPoints[i+1]) == 0) throw new IllegalArgumentException();
+        // check for duplicate points
+        for (int i = 0; i < n - 1; i++) {
+            if (sortedPoints[i].compareTo(sortedPoints[i + 1]) == 0)
+                throw new IllegalArgumentException();
         }
 
+        for (int i = 0; i < n; i++) {
+            origin = originalOrder[i];
 
-        // Treat each point as an origin and find slopes to every other point
-        // Points with the same slope from the origin are collinear
-        for (int i = 0; i < length; i++) {
-            origin = fixedOrder[i];
-            // StdOut.println("=== Origin: " + origin.toString() + " ===");
-
-            // Sort by natural order and then by slope to find endpoints easily
-            Arrays.sort(myPoints);
-            Arrays.sort(myPoints, origin.slopeOrder()); // Mergesort used (stable)
+            Arrays.sort(sortedPoints);
+            Arrays.sort(sortedPoints, origin.slopeOrder());
 
             int j = 0;
-            int additionalPoints = 0;
+            int collinearCount;
 
-            while (j < length-2) {
-                
-                // Find all points with the same slope we are currently working with
-                testSlope = origin.slopeTo(myPoints[j]);
-                additionalPoints = 1;
-                while (j + additionalPoints < length &&
-                        testSlope == origin.slopeTo(myPoints[j+additionalPoints])) {
-                    additionalPoints++;
+            while (j < n - 2) {
+                currentSlope = origin.slopeTo(sortedPoints[j]);
+                collinearCount = 1;
+
+                while (j + collinearCount < n &&
+                        currentSlope == origin.slopeTo(sortedPoints[j + collinearCount])) {
+                    collinearCount++;
                 }
-                additionalPoints -= 1;
 
-                // Check if the line segment has at least 4 collinear points
-                if (additionalPoints >= 2) {
+                collinearCount--;
 
-                    // Only create line segment if first and last additional
-                    // points are in the "forward" direction 
-                    // (works because we sorted twice, so the points inbetween are sorted
-                    // in an increasing order)
-                    if (origin.compareTo(myPoints[j]) < 0 &&
-                            origin.compareTo(myPoints[j+additionalPoints]) < 0) {
-                        testSegments[numSegments] = new LineSegment(origin, myPoints[j+additionalPoints]);
-                        numSegments++;
+                if (collinearCount >= 2) {
+                    if (origin.compareTo(sortedPoints[j]) < 0 &&
+                        origin.compareTo(sortedPoints[j + collinearCount]) < 0) {
+                        tempSegments[totalSegments] = new LineSegment(origin, sortedPoints[j + collinearCount]);
+                        totalSegments++;
                     }
-                    j = j + additionalPoints;
+                    j += collinearCount;
                 }
+
                 j++;
             }
         }
-        segments = new LineSegment[numSegments];
-        for (int i = 0; i < numSegments; i++) {
-            segments[i] = testSegments[i];
+
+        foundSegments = new LineSegment[totalSegments];
+        for (int i = 0; i < totalSegments; i++) {
+            foundSegments[i] = tempSegments[i];
         }
-
     }
 
-    // the number of line segments
+    // returns the number of line segments
     public int numberOfSegments() {
-        return segments.length;
+        return foundSegments.length;
     }
 
-    // the line segments
+    // returns the line segments
     public LineSegment[] segments() {
         int length = numberOfSegments();
-        LineSegment [] re = new LineSegment[length];
-        for (int i = 0; i < length; i++) re[i] = segments[i];
-        return re;
+        LineSegment[] result = new LineSegment[length];
+        for (int i = 0; i < length; i++) result[i] = foundSegments[i];
+        return result;
     }
 
     public static void main(String[] args) {
@@ -112,7 +103,7 @@ public final class FastCollinearPoints {
         }
         StdDraw.show();
 
-        // print and draw the line segments
+        // find and draw the line segments
         FastCollinearPoints collinear = new FastCollinearPoints(points);
         for (LineSegment segment : collinear.segments()) {
             StdOut.println(segment);
