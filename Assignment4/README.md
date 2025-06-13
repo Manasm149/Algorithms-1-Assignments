@@ -1,4 +1,3 @@
-README.txt
 
 Project: 8-Puzzle Solver using A* Search Algorithm
 --------------------------------------------------
