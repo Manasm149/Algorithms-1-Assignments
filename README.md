@@ -17,6 +17,13 @@ Computer vision involves analyzing patterns in visual images and reconstructing 
 https://coursera.cs.princeton.edu/algs4/assignments/collinear/specification.php
 
 # Assignment-4
+Performs an efficient range search (find all points contained in a query rectangle) and nearest neighbour search (find closest point to a query point) using a 2d-tree.
+
+http://coursera.cs.princeton.edu/algs4/assignments/kdtree.html
+
+
+
+# Assignment-4
 Write a program to solve the 8-puzzle problem (and its natural generalizations) using the A* search algorithm.
 
 https://coursera.cs.princeton.edu/algs4/assignments/8puzzle/specification.php
